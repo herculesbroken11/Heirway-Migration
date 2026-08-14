@@ -1,0 +1,1 @@
+ALTER TABLE public.heirway_admin_notifications ADD COLUMN target_plans text[] DEFAULT NULL;

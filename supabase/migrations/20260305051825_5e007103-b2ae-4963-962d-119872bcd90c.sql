@@ -1,0 +1,1 @@
+ALTER TABLE public.heirway_trust_progress ADD COLUMN trust_code text DEFAULT null;

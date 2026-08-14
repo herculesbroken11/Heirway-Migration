@@ -1,0 +1,1 @@
+ALTER TABLE public.heirway_clients ADD COLUMN IF NOT EXISTS questionnaire_answers jsonb DEFAULT NULL;

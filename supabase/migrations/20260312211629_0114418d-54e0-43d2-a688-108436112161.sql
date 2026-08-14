@@ -1,0 +1,1 @@
+ALTER TABLE public.heirway_admin_requests ADD COLUMN related_minute_id uuid REFERENCES public.heirway_meeting_minutes(id) ON DELETE SET NULL;

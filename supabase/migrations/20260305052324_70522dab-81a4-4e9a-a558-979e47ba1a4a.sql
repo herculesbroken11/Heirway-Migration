@@ -1,0 +1,1 @@
+CREATE POLICY "Users can delete own minutes" ON public.heirway_meeting_minutes FOR DELETE TO authenticated USING (user_id = auth.uid());

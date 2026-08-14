@@ -1,0 +1,1 @@
+ALTER TABLE public.heirway_clients ADD COLUMN IF NOT EXISTS plan_started_at timestamp with time zone DEFAULT now();

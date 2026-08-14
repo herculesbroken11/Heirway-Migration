@@ -1,0 +1,282 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Open+Sans:wght@400;500;600;700;800&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Trust Diagnostic Design System
+   Dark intelligence console with mustard gold accents
+   All colors in HSL format
+*/
+
+@layer base {
+  :root {
+    /* Light mode */
+    --background: 40 20% 98%;
+    --foreground: 220 10% 20%;
+
+    /* Card surfaces - elevated light panels */
+    --card: 40 15% 96%;
+    --card-foreground: 220 10% 20%;
+
+    --popover: 40 15% 98%;
+    --popover-foreground: 220 10% 20%;
+
+    /* Primary: Mustard Gold */
+    --primary: 43 85% 45%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary: Muted gold/bronze */
+    --secondary: 35 20% 90%;
+    --secondary-foreground: 220 10% 20%;
+
+    /* Muted for subtle backgrounds */
+    --muted: 40 15% 92%;
+    --muted-foreground: 225 10% 45%;
+
+    /* Accent: Rich amber highlight */
+    --accent: 38 70% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Destructive: Warm red */
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Border and inputs */
+    --border: 40 15% 88%;
+    --input: 40 15% 88%;
+    --ring: 43 85% 45%;
+
+    --radius: 0.75rem;
+
+    /* Sidebar - Slightly darker panel */
+    --sidebar-background: 40 15% 94%;
+    --sidebar-foreground: 220 10% 20%;
+    --sidebar-primary: 43 85% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 40 15% 90%;
+    --sidebar-accent-foreground: 225 20% 12%;
+    --sidebar-border: 40 15% 85%;
+    --sidebar-ring: 43 85% 45%;
+
+    /* Custom semantic tokens */
+    --success: 158 64% 35%;
+    --success-foreground: 0 0% 100%;
+    --warning: 43 96% 45%;
+    --warning-foreground: 225 20% 9%;
+    --info: 199 89% 42%;
+    --info-foreground: 0 0% 100%;
+
+    /* Index score colors */
+    --score-low: 158 64% 35%;
+    --score-moderate: 43 96% 45%;
+    --score-high: 0 72% 51%;
+
+    /* Chart colors - gold/amber spectrum */
+    --chart-1: 43 85% 45%;
+    --chart-2: 38 70% 40%;
+    --chart-3: 35 50% 35%;
+    --chart-4: 30 40% 30%;
+    --chart-5: 25 30% 25%;
+    --chart-6: 158 64% 35%;
+    --chart-7: 0 72% 50%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(43 85% 45%) 0%, hsl(38 70% 40%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(43 85% 45%) 0%, hsl(30 80% 45%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(40 20% 98%) 0%, hsl(40 15% 96%) 50%, hsl(35 20% 94%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(40 15% 98%) 0%, hsl(40 15% 94%) 100%);
+
+    /* Shadows - light mode */
+    --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.08), 0 1px 2px -1px hsl(0 0% 0% / 0.08);
+    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.08), 0 2px 4px -2px hsl(0 0% 0% / 0.08);
+    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.08), 0 4px 6px -4px hsl(0 0% 0% / 0.08);
+    --shadow-card: 0 4px 20px -4px hsl(0 0% 0% / 0.1), 0 0 0 1px hsl(43 85% 45% / 0.05);
+    --shadow-glow: 0 0 40px -10px hsl(43 85% 45% / 0.2);
+    --sidebar: 40 15% 94%;
+    --font-sans: 'DM Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+    --font-serif: 'Crimson Pro', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
+    --font-mono: 'SF Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
+    --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.06);
+    --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.1), 0 8px 10px -6px hsl(0 0% 0% / 0.1);
+    --shadow-2xl: 0 25px 50px -12px hsl(0 0% 0% / 0.15);
+    --tracking-normal: 0em;
+    --spacing: 0.25rem;
+  }
+
+  .dark {
+    /* Dark mode - deep charcoal background */
+    --background: 225 20% 9%;
+    --foreground: 40 20% 95%;
+
+    /* Card surfaces - elevated dark panels */
+    --card: 225 18% 13%;
+    --card-foreground: 40 20% 95%;
+
+    --popover: 225 18% 15%;
+    --popover-foreground: 40 20% 95%;
+
+    /* Primary: Mustard Gold */
+    --primary: 43 85% 55%;
+    --primary-foreground: 225 20% 9%;
+
+    /* Secondary: Muted gold/bronze */
+    --secondary: 35 30% 25%;
+    --secondary-foreground: 40 20% 95%;
+
+    /* Muted for subtle backgrounds */
+    --muted: 225 15% 20%;
+    --muted-foreground: 225 10% 55%;
+
+    /* Accent: Rich amber highlight */
+    --accent: 38 70% 45%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Destructive: Warm red */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 85% 97%;
+
+    /* Border and inputs */
+    --border: 225 15% 18%;
+    --input: 225 15% 18%;
+    --ring: 43 85% 55%;
+
+    /* Sidebar - Deeper dark panel */
+    --sidebar-background: 225 22% 7%;
+    --sidebar-foreground: 40 20% 95%;
+    --sidebar-primary: 43 85% 55%;
+    --sidebar-primary-foreground: 225 20% 9%;
+    --sidebar-accent: 225 18% 15%;
+    --sidebar-accent-foreground: 40 20% 95%;
+    --sidebar-border: 225 15% 14%;
+    --sidebar-ring: 43 85% 55%;
+
+    /* Custom semantic tokens */
+    --success: 158 64% 42%;
+    --success-foreground: 0 0% 100%;
+    --warning: 43 96% 56%;
+    --warning-foreground: 225 20% 9%;
+    --info: 199 89% 48%;
+    --info-foreground: 0 0% 100%;
+
+    /* Chart colors */
+    --chart-1: 43 85% 55%;
+    --chart-2: 38 70% 45%;
+    --chart-3: 35 50% 35%;
+    --chart-4: 30 40% 30%;
+    --chart-5: 25 30% 25%;
+    --chart-6: 158 64% 42%;
+    --chart-7: 0 72% 50%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(43 85% 55%) 0%, hsl(38 70% 45%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(43 85% 55%) 0%, hsl(30 80% 50%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(225 20% 9%) 0%, hsl(225 18% 13%) 50%, hsl(35 20% 12%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(225 18% 15%) 0%, hsl(225 18% 11%) 100%);
+
+    /* Shadows - dark mode */
+    --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.3), 0 1px 2px -1px hsl(0 0% 0% / 0.3);
+    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.3), 0 2px 4px -2px hsl(0 0% 0% / 0.3);
+    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.3), 0 4px 6px -4px hsl(0 0% 0% / 0.3);
+    --shadow-card: 0 4px 20px -4px hsl(0 0% 0% / 0.4), 0 0 0 1px hsl(43 85% 55% / 0.03);
+    --shadow-glow: 0 0 40px -10px hsl(43 85% 55% / 0.3);
+    --sidebar: 225 22% 7%;
+    --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.2);
+    --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+    --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.3), 0 8px 10px -6px hsl(0 0% 0% / 0.3);
+    --shadow-2xl: 0 25px 50px -12px hsl(0 0% 0% / 0.5);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Open Sans', system-ui, sans-serif;
+    @apply font-semibold tracking-tight;
+  }
+}
+
+@layer components {
+  .score-badge {
+    @apply inline-flex items-center justify-center rounded-full px-3 py-1 text-sm font-medium;
+  }
+
+  .score-badge-low {
+    @apply bg-success/15 text-success;
+  }
+
+  .score-badge-moderate {
+    @apply bg-warning/15 text-warning;
+  }
+
+  .score-badge-high {
+    @apply bg-destructive/15 text-destructive;
+  }
+
+  .glass-card {
+    @apply bg-card/80 backdrop-blur-xl border border-border/50 shadow-card rounded-xl;
+  }
+
+  .glass-panel {
+    @apply bg-card/60 backdrop-blur-2xl border border-border/40 shadow-2xl rounded-2xl;
+  }
+
+  .glass-input {
+    @apply bg-muted/50 backdrop-blur-sm border-border/50 focus:bg-muted/70 focus:border-primary/50 transition-all duration-300;
+  }
+
+  .glass-option {
+    @apply bg-muted/30 backdrop-blur-sm border border-border/40 hover:bg-primary/10 hover:border-primary/40 transition-all duration-300 cursor-pointer rounded-xl;
+  }
+
+  .glass-option-selected {
+    @apply bg-primary/15 backdrop-blur-sm border-primary/50 shadow-lg;
+  }
+
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent;
+  }
+
+  .gradient-bg {
+    @apply bg-gradient-to-br from-background via-card/30 to-background;
+  }
+
+  /* Stat card styling */
+  .stat-card {
+    @apply glass-card p-5 hover:border-primary/30 transition-all duration-300;
+  }
+
+  .stat-value {
+    @apply text-3xl font-display font-bold text-foreground;
+  }
+
+  .stat-label {
+    @apply text-sm text-muted-foreground;
+  }
+
+  /* Gold accent glow effect */
+  .gold-glow {
+    box-shadow: 0 0 30px -5px hsl(43 85% 55% / 0.2);
+  }
+
+  /* Metric highlight */
+  .metric-highlight {
+    @apply relative overflow-hidden;
+  }
+
+  .metric-highlight::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent pointer-events-none;
+  }
+}

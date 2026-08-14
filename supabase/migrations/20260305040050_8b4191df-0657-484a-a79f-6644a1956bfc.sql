@@ -1,0 +1,1 @@
+ALTER TABLE public.heirway_clients ADD COLUMN silver_spot_price numeric DEFAULT 0;

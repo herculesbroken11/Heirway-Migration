@@ -1,0 +1,1 @@
+ALTER TABLE public.heirway_clients ADD COLUMN IF NOT EXISTS premium_access_granted boolean NOT NULL DEFAULT false;

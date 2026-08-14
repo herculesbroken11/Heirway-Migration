@@ -1,0 +1,1 @@
+ALTER TABLE public.successor_vault_accounts ADD COLUMN safety_instructions TEXT DEFAULT '';

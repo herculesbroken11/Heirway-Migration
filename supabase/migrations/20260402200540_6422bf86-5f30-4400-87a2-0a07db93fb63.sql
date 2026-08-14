@@ -1,0 +1,1 @@
+ALTER TABLE public.prospects ADD COLUMN quiz_answers jsonb DEFAULT NULL;
