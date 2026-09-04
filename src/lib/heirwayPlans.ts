@@ -221,12 +221,46 @@ export const ADDITIONAL_TRUST_PRICE = 1499;
 /** Optional Creator Matching Service — priced per trust. */
 export const CREATOR_MATCHING_PRICE = 500;
 
+/** UI Record keys used to iterate HEIRWAY_TRUST_PACKAGES in pricing/recommendation views. */
+export const TRUST_PACKAGE_RECORD_KEYS = ['legacy', 'foundation', 'business', 'wealth_builder'] as const;
+
+/**
+ * Resolve a trust package by canonical API id (TrustPackage.id) or UI Record key.
+ * Canonical API ids: legacy, foundation_package, business_package, wealth_builder.
+ */
+export function resolveTrustPackage(packageKey: string): TrustPackage | undefined {
+  const byRecord = HEIRWAY_TRUST_PACKAGES[packageKey];
+  if (byRecord) return byRecord;
+  return Object.values(HEIRWAY_TRUST_PACKAGES).find((p) => p.id === packageKey);
+}
+
+/** Canonical TrustPackage.id for API/sessionStorage (never UI Record keys alone). */
+export function canonicalTrustPackageId(packageKey: string): string | undefined {
+  const pkg = resolveTrustPackage(packageKey);
+  return pkg?.id;
+}
+
+/**
+ * Normalize Stripe package_id metadata to heirway_clients.selected_plan.
+ * Only explicit allowlist entries — unknown ids return null.
+ */
+export const PACKAGE_ID_TO_SELECTED_PLAN: Record<string, string> = {
+  foundation_package: 'foundation',
+  business_package: 'business',
+  /** subscriptionAccess TRUST_PACKAGE_PLANS — valid selected_plan for trust-package buyers */
+  legacy: 'legacy',
+};
+
+export function packageIdToSelectedPlan(packageId: string): string | null {
+  return PACKAGE_ID_TO_SELECTED_PLAN[packageId] ?? null;
+}
+
 /** Compute payment plan totals for N additional trusts + optional creator matching. */
 export function calculatePackageTotal(
   pkgId: string,
   extras: { additionalTrusts?: number; creatorMatchingTrusts?: number } = {},
 ) {
-  const pkg = HEIRWAY_TRUST_PACKAGES[pkgId];
+  const pkg = resolveTrustPackage(pkgId);
   if (!pkg) return null;
   const additional = (extras.additionalTrusts || 0) * ADDITIONAL_TRUST_PRICE;
   const creator = (extras.creatorMatchingTrusts || 0) * CREATOR_MATCHING_PRICE;

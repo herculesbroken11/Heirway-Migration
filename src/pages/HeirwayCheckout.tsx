@@ -9,11 +9,13 @@ import { Badge } from '@/components/ui/badge';
 import { Check, Loader2, Tag, Plus, Minus } from 'lucide-react';
 import {
   HEIRWAY_SUBSCRIPTIONS,
-  HEIRWAY_TRUST_PACKAGES,
   ADDITIONAL_TRUST_PRICE,
   CREATOR_MATCHING_PRICE,
   calculatePackageTotal,
   HEIRWAY_PLANS,
+  canonicalTrustPackageId,
+  resolveTrustPackage,
+  packageIdToSelectedPlan,
 } from '@/lib/heirwayPlans';
 import PaymentOptionsInfo from '@/components/heirway/checkout/PaymentOptionsInfo';
 import EmbeddedPaymentForm from '@/components/heirway/checkout/EmbeddedPaymentForm';
@@ -43,7 +45,7 @@ export default function HeirwayCheckout() {
   // ─── Mode selection ────────────────────────────────────────
   const [mode, setMode] = useState<Mode>('subscription');
   const [subscriptionId, setSubscriptionId] = useState<string>('essentials');
-  const [packageId, setPackageId] = useState<string>('foundation');
+  const [packageId, setPackageId] = useState<string>('foundation_package');
   const [paymentPlan, setPaymentPlan] = useState<PaymentPlan>('cash');
   const [additionalTrusts, setAdditionalTrusts] = useState(0);
   const [creatorMatching, setCreatorMatching] = useState(0);
@@ -59,10 +61,17 @@ export default function HeirwayCheckout() {
     const urlPackage = params.get('package');
     const urlSub = params.get('sub');
 
-    if (urlPackage && HEIRWAY_TRUST_PACKAGES[urlPackage]) {
+    const resolveAndSetPackage = (raw: string) => {
+      const canonical = canonicalTrustPackageId(raw);
+      if (!canonical) return false;
       setMode('package');
-      setPackageId(urlPackage);
-      sessionStorage.setItem('heirway_selected_package', urlPackage);
+      setPackageId(canonical);
+      sessionStorage.setItem('heirway_selected_package', canonical);
+      return true;
+    };
+
+    if (urlPackage && resolveAndSetPackage(urlPackage)) {
+      // stored canonical id in resolveAndSetPackage
     } else if (urlSub && HEIRWAY_SUBSCRIPTIONS[urlSub]) {
       setMode('subscription');
       setSubscriptionId(urlSub);
@@ -70,9 +79,8 @@ export default function HeirwayCheckout() {
     } else {
       const storedPkg = sessionStorage.getItem('heirway_selected_package');
       const storedSub = sessionStorage.getItem('heirway_selected_subscription');
-      if (storedPkg && HEIRWAY_TRUST_PACKAGES[storedPkg]) {
-        setMode('package');
-        setPackageId(storedPkg);
+      if (storedPkg && resolveAndSetPackage(storedPkg)) {
+        // canonical id restored
       } else if (storedSub && HEIRWAY_SUBSCRIPTIONS[storedSub]) {
         setMode('subscription');
         setSubscriptionId(storedSub);
@@ -84,7 +92,7 @@ export default function HeirwayCheckout() {
 
   // ─── Derived values ────────────────────────────────────────
   const subscription = HEIRWAY_SUBSCRIPTIONS[subscriptionId];
-  const pkg = HEIRWAY_TRUST_PACKAGES[packageId];
+  const pkg = resolveTrustPackage(packageId);
 
   const packageTotals = useMemo(
     () =>
@@ -185,7 +193,15 @@ export default function HeirwayCheckout() {
         const intakeDone = priorClient?.plan_status === 'intake_complete';
 
         const selectedPlanValue =
-          mode === 'package' ? packageId : subscriptionId;
+          mode === 'package'
+            ? packageIdToSelectedPlan(packageId)
+            : subscriptionId;
+
+        if (!selectedPlanValue) {
+          console.error('Checkout success: no selected_plan mapping for package', packageId);
+          navigate('/heirway/onboarding-call');
+          return;
+        }
 
         await supabase
           .from('heirway_clients')
@@ -222,7 +238,12 @@ export default function HeirwayCheckout() {
   const isPackage = mode === 'package';
 
   // Legacy plan shim for PaymentOptionsInfo (expects HeirwayPlan)
-  const legacyPlanShim = HEIRWAY_PLANS[packageId] ?? HEIRWAY_PLANS.foundation;
+  const legacyPlanShim =
+    (() => {
+      const normalized = packageIdToSelectedPlan(packageId);
+      if (normalized && HEIRWAY_PLANS[normalized]) return HEIRWAY_PLANS[normalized];
+      return HEIRWAY_PLANS.foundation;
+    })();
 
   return (
     <div className="min-h-screen gradient-bg">

@@ -22,7 +22,23 @@ function splitName(full?: string): { first: string; last: string } {
   return { first: parts[0], last: parts.slice(1).join(' ') };
 }
 
+function maskEmail(email?: string | null): string {
+  if (!email || typeof email !== 'string') return '(none)';
+  const [local, domain] = email.split('@');
+  if (!domain) return '(invalid)';
+  const safeLocal = local.length <= 2 ? `${local[0] ?? '*'}*` : `${local.slice(0, 2)}***`;
+  return `${safeLocal}@${domain}`;
+}
+
 async function upsertContact(body: Record<string, any>) {
+  console.log('[GHL-SYNC] GHL contacts/upsert request', {
+    hasEmail: Boolean(body.email),
+    hasPhone: Boolean(body.phone),
+    tagCount: Array.isArray(body.tags) ? body.tags.length : 0,
+    customFieldCount: Array.isArray(body.customFields) ? body.customFields.length : 0,
+    sourceLabel: body.source || null,
+  });
+
   const res = await fetch(`${GHL_BASE}/contacts/upsert`, {
     method: 'POST',
     headers: {
@@ -34,11 +50,15 @@ async function upsertContact(body: Record<string, any>) {
     body: JSON.stringify(body),
   });
   const text = await res.text();
+  console.log('[GHL-SYNC] GHL contacts/upsert response', { status: res.status, ok: res.ok });
   if (!res.ok) {
-    console.error('GHL upsert failed', res.status, text);
+    console.error('[GHL-SYNC] GHL upsert failed', res.status, text);
     throw new Error(`GHL ${res.status}: ${text}`);
   }
-  return JSON.parse(text);
+  const parsed = JSON.parse(text);
+  const contactId = parsed?.contact?.id || parsed?.id || null;
+  console.log('[GHL-SYNC] GHL contact upserted', { contactId: contactId ? String(contactId) : null });
+  return parsed;
 }
 
 Deno.serve(async (req) => {
@@ -54,6 +74,14 @@ Deno.serve(async (req) => {
     const payload: IncomingPayload = await req.json();
     const { source, record } = payload;
 
+    console.log('[GHL-SYNC] Request received', {
+      source: source || '(missing)',
+      hasRecord: Boolean(record),
+      email: maskEmail(record?.email),
+      hasFullName: Boolean(record?.full_name || record?.name),
+      planId: record?.plan_id || record?.selected_plan || null,
+    });
+
     if (source === 'prospect') {
       const { first, last } = splitName(record.name);
       const tags = ['source:lovable', `source:${(record.status || 'new')}-prospect`];
@@ -65,6 +93,7 @@ Deno.serve(async (req) => {
         tags.push('consent:no-explicit-consent');
       }
 
+      console.log('[GHL-SYNC] Upserting prospect contact', { tags });
       await upsertContact({
         locationId: GHL_LOCATION_ID,
         firstName: first,
@@ -87,6 +116,7 @@ Deno.serve(async (req) => {
         record.opt_in ? 'consent:opted-in' : 'consent:no-explicit-consent',
       ];
 
+      console.log('[GHL-SYNC] Upserting contact_message contact', { tags });
       await upsertContact({
         locationId: GHL_LOCATION_ID,
         firstName: first,
@@ -109,6 +139,7 @@ Deno.serve(async (req) => {
         `plan:${planId}`,
       ];
 
+      console.log('[GHL-SYNC] Upserting paid_customer contact', { planId, tags });
       await upsertContact({
         locationId: GHL_LOCATION_ID,
         firstName: first,
@@ -133,6 +164,7 @@ Deno.serve(async (req) => {
       if (record.selected_plan) tags.push(`plan:${record.selected_plan}`);
       if (record.recommended_plan) tags.push(`recommended:${record.recommended_plan}`);
 
+      console.log('[GHL-SYNC] Upserting registered_user contact', { tags });
       await upsertContact({
         locationId: GHL_LOCATION_ID,
         firstName: first,
@@ -153,18 +185,21 @@ Deno.serve(async (req) => {
         ],
       });
     } else {
+      console.warn('[GHL-SYNC] Unknown source; rejecting', { source });
       return new Response(JSON.stringify({ error: 'Unknown source' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
+    console.log('[GHL-SYNC] Success', { source });
     return new Response(JSON.stringify({ ok: true }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (err) {
-    console.error('ghl-sync error', err);
-    return new Response(JSON.stringify({ error: String(err?.message || err) }), {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('[GHL-SYNC] Error', { message });
+    return new Response(JSON.stringify({ error: message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

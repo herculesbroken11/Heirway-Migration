@@ -55,7 +55,7 @@ serve(async (req) => {
 
     if (amountCents > 0) {
       // Create a Checkout Session for the payoff amount
-      const origin = req.headers.get("origin") || "https://trustreadiness.lovable.app";
+      const origin = req.headers.get("origin") || "https://myheirway.com";
 
       const session = await stripe.checkout.sessions.create({
         customer: customerId,

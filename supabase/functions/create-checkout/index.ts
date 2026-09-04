@@ -83,7 +83,7 @@ serve(async (req) => {
           }
         : undefined;
 
-    const origin = req.headers.get("origin") || "https://trustreadiness.lovable.app";
+    const origin = req.headers.get("origin") || "https://myheirway.com";
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,

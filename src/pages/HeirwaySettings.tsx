@@ -12,11 +12,14 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { User, Mail, Lock, Loader2, Check, Shield, ArrowRight } from 'lucide-react';
 import { HEIRWAY_PLANS } from '@/lib/heirwayPlans';
+import { getPlanDisplayName } from '@/lib/planDisplayLabels';
+import { usePlanCatalog } from '@/hooks/usePlanCatalog';
 import BillingSection from '@/components/heirway/settings/BillingSection';
 import DeleteAccountSection from '@/components/heirway/settings/DeleteAccountSection';
 
 export default function HeirwaySettings() {
   useForceLightMode();
+  const { plans: catalogPlans } = usePlanCatalog();
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -166,7 +169,7 @@ export default function HeirwaySettings() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-lg font-bold text-foreground">
-                  {client?.selected_plan ? (HEIRWAY_PLANS[client.selected_plan]?.name || client.selected_plan) : 'Free'}
+                  {getPlanDisplayName(client?.selected_plan, catalogPlans)}
                 </p>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {client?.selected_plan && HEIRWAY_PLANS[client.selected_plan]

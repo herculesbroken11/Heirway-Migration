@@ -597,6 +597,98 @@ export type Database = {
         }
         Relationships: []
       }
+      heirway_plan_catalog: {
+        Row: {
+          active: boolean
+          client_portal_tier: string | null
+          content_access_keys: string[]
+          created_at: string
+          display_name: string
+          internal_key: string
+          metadata: Json
+          offered: boolean
+          plan_category: string
+          selected_plan_key: string
+          sort_order: number
+          stripe_checkout_key: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          client_portal_tier?: string | null
+          content_access_keys?: string[]
+          created_at?: string
+          display_name: string
+          internal_key: string
+          metadata?: Json
+          offered?: boolean
+          plan_category: string
+          selected_plan_key: string
+          sort_order?: number
+          stripe_checkout_key?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          client_portal_tier?: string | null
+          content_access_keys?: string[]
+          created_at?: string
+          display_name?: string
+          internal_key?: string
+          metadata?: Json
+          offered?: boolean
+          plan_category?: string
+          selected_plan_key?: string
+          sort_order?: number
+          stripe_checkout_key?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      heirway_plan_prices: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          metadata: Json
+          plan_catalog_key: string
+          price_role: string
+          stripe_price_id: string
+          updated_at: string
+          verified_at: string | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          metadata?: Json
+          plan_catalog_key: string
+          price_role: string
+          stripe_price_id: string
+          updated_at?: string
+          verified_at?: string | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          metadata?: Json
+          plan_catalog_key?: string
+          price_role?: string
+          stripe_price_id?: string
+          updated_at?: string
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "heirway_plan_prices_plan_catalog_key_fkey"
+            columns: ["plan_catalog_key"]
+            isOneToOne: false
+            referencedRelation: "heirway_plan_catalog"
+            referencedColumns: ["internal_key"]
+          },
+        ]
+      }
       heirway_document_templates: {
         Row: {
           conditional_fields: Json

@@ -29,7 +29,7 @@ export const IntakeCompleteEmail = ({
     <Body style={main}>
       <Container style={container}>
         <Img
-          src="https://aepubshqohzdgpclltqb.supabase.co/storage/v1/object/public/email-assets/heirway-logo.png"
+          src="https://yyypaywmjowbicammdnp.supabase.co/storage/v1/object/public/email-assets/heirway-logo.png"
           alt="Heirway"
           width="140"
           height="auto"

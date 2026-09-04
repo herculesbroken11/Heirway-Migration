@@ -18,6 +18,7 @@ import { TRUST_TYPES, getTrustLabel, getTrustBgClass, getTrustColor, trustHasBan
 import { EditableClientProfile } from '@/components/heirway/admin/EditableClientProfile';
 import AdminTrustMembersView from '@/components/heirway/admin/AdminTrustMembersView';
 import ClientLearningProgress from '@/components/heirway/admin/ClientLearningProgress';
+import { usePlanDisplayLabels, withCurrentPlanOption } from '@/hooks/usePlanDisplayLabels';
 
 import {
   ChevronLeft, User, Shield, Plus, Pencil, Trash2, X, DollarSign,
@@ -27,18 +28,6 @@ import {
 } from 'lucide-react';
 
 // Current subscription tiers + legacy plans preserved for grandfathered clients.
-const PLAN_OPTIONS = ['free', 'essentials', 'steward', 'gold', 'education', 'foundation', 'business', 'wealth_builder'];
-const PLAN_LABELS: Record<string, string> = {
-  free: 'Free',
-  essentials: 'Essentials',
-  steward: 'Steward',
-  gold: 'Gold',
-  education: 'Essentials (Legacy)',
-  foundation: 'Foundation (Legacy)',
-  business: 'Business (Legacy)',
-  wealth_builder: 'Wealth Builder',
-};
-const planLabel = (p: string | null | undefined) => (p ? (PLAN_LABELS[p] || p.replace(/_/g, ' ')) : 'Free');
 const TRUST_STAGES = ['assigning_creator', 'processing_documents', 'ready_to_sign', 'trusts_complete'];
 
 interface TrustRecord {
@@ -60,6 +49,7 @@ interface TrustRecord {
 export default function AdminClientDetail() {
   const { clientId } = useParams();
   const navigate = useNavigate();
+  const { planLabel, assignmentOptions, catalog } = usePlanDisplayLabels();
   const [client, setClient] = useState<any>(null);
   const [trusts, setTrusts] = useState<TrustRecord[]>([]);
   const [assets, setAssets] = useState<any[]>([]);
@@ -473,8 +463,8 @@ export default function AdminClientDetail() {
                 <Select defaultValue={client.selected_plan || 'free'} onValueChange={handleUpdatePlan}>
                   <SelectTrigger className="mt-1 h-8 text-xs"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {PLAN_OPTIONS.map(p => (
-                      <SelectItem key={p} value={p} className="text-xs">{planLabel(p)}</SelectItem>
+                    {withCurrentPlanOption(assignmentOptions, client.selected_plan, catalog).map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value} className="text-xs">{opt.label}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

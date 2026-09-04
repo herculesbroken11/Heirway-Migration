@@ -25,7 +25,7 @@ interface BeneficiarySummary {
 export default function HeirwayFamilyGovernance() {
   useForceLightMode();
   const navigate = useNavigate();
-  const { clientId, planName, loading: profileLoading } = useClientProfile();
+  const { clientId, loading: profileLoading } = useClientProfile();
   const [beneficiaries, setBeneficiaries] = useState<BeneficiarySummary[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -52,13 +52,11 @@ export default function HeirwayFamilyGovernance() {
       return;
     }
 
-    // Get lessons accessible to this client's plan
-    const effectivePlan = planName || 'free';
+    // RLS returns only content this user may access; count active lessons for progress denominator
     const { data: lessons } = await supabase
       .from('heirway_learning_content')
       .select('id')
-      .eq('is_active', true)
-      .contains('allowed_plans', [effectivePlan]);
+      .eq('is_active', true);
     const totalLessons = lessons?.length || 0;
 
     const { data: members } = await supabase

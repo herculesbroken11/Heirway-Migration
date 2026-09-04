@@ -17,6 +17,7 @@ import {
 'lucide-react';
 import { toast } from 'sonner';
 import { useUpgradeRoute } from '@/hooks/useUpgradeRoute';
+import type { ClientTier } from '@/lib/planCatalogTypes';
 
 interface HeirwayLayoutProps {
   children: ReactNode;
@@ -50,7 +51,7 @@ function HeirwaySidebar() {
     }
   }, [user, profileLoading]);
 
-  const effectiveTier = profileLoading ? null : tier;
+  const effectiveTier: ClientTier = profileLoading ? 'free' : tier;
 
   const navigation = [
   { name: 'Dashboard', href: '/heirway/dashboard', icon: LayoutDashboard, tiers: ['free', 'education', 'trust'] },
@@ -96,7 +97,7 @@ function HeirwaySidebar() {
             return (
               <SidebarMenuItem key={item.name}>
                 <SidebarMenuButton
-                  asChild={!isLocked}
+                  asChild
                   isActive={isActive}
                   tooltip={isLocked ? `${item.name} (Foundation+ plan required)` : item.name}
                   className={isLocked ?
@@ -104,8 +105,7 @@ function HeirwaySidebar() {
                   isActive ?
                   'bg-gradient-to-r from-primary/20 to-primary/10 text-primary border border-primary/20' :
                   'text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent'
-                  }
-                  onClick={isLocked ? (e: any) => e.preventDefault() : undefined}>
+                  }>
                   
                   {isLocked ?
                   <div className="flex items-center gap-2 w-full">

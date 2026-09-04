@@ -22,14 +22,18 @@ import {
   Users, Shield, FileText, ClipboardList, Settings, Plus, Search,
   ChevronDown, ChevronUp, Eye, Edit, Trash2, Check, X, DollarSign,
   Building2, User, Briefcase, AlertTriangle, Clock, RefreshCw, Landmark, Coins, Pencil,
-  ExternalLink, Crown, Heart, Bell, Send, BookOpen, Video, BarChart3, Download, Sparkles,
+  ExternalLink, Crown, Heart, Bell, Send, BookOpen, Video, BarChart3, Download, Sparkles, Settings2,
 } from 'lucide-react';
 import LearningContentManager from '@/components/heirway/admin/LearningContentManager';
 import AdminUsersManager from '@/components/heirway/admin/AdminUsersManager';
 import IntakeVideoManager from '@/components/heirway/admin/IntakeVideoManager';
 import KnowledgebaseManager from '@/components/heirway/admin/KnowledgebaseManager';
+import PlanConfigurationManager from '@/components/heirway/admin/PlanConfigurationManager';
+import PlanEntitlementEditor from '@/components/heirway/admin/PlanEntitlementEditor';
+import PlanPricesViewer from '@/components/heirway/admin/PlanPricesViewer';
 import ConsentLogViewer from '@/components/heirway/admin/ConsentLogViewer';
 import ContactMessagesViewer from '@/components/heirway/admin/ContactMessagesViewer';
+import { usePlanDisplayLabels, withCurrentPlanOption } from '@/hooks/usePlanDisplayLabels';
 
 import { UserBehaviorAnalytics } from '@/components/dashboard/UserBehaviorAnalytics';
 
@@ -81,23 +85,11 @@ interface TrustRecord {
   beneficiaries: { name: string; units_of_interest: string }[];
 }
 
-// Current subscription tiers + legacy plans preserved for grandfathered clients.
-const PLAN_OPTIONS = ['free', 'essentials', 'steward', 'gold', 'education', 'foundation', 'business', 'wealth_builder'];
-const PLAN_LABELS: Record<string, string> = {
-  free: 'Free',
-  essentials: 'Essentials',
-  steward: 'Steward',
-  gold: 'Gold',
-  education: 'Essentials (Legacy)',
-  foundation: 'Foundation (Legacy)',
-  business: 'Business (Legacy)',
-  wealth_builder: 'Wealth Builder',
-};
-const planLabel = (p: string | null | undefined) => (p ? (PLAN_LABELS[p] || p.replace(/_/g, ' ')) : 'Free');
 const TRUST_STAGES = ['assigning_creator', 'processing_documents', 'ready_to_sign', 'trusts_complete'];
 
 export default function AdminHeirway() {
   const navigate = useNavigate();
+  const { planLabel, assignmentOptions, catalog } = usePlanDisplayLabels();
   const [clients, setClients] = useState<HeirwayClient[]>([]);
   const [requests, setRequests] = useState<AdminRequest[]>([]);
   const [trusts, setTrusts] = useState<TrustRecord[]>([]);
@@ -543,6 +535,7 @@ export default function AdminHeirway() {
               <TabsList className="w-full justify-start h-auto gap-1 bg-transparent p-0 flex-wrap">
                 <TabsTrigger value="learning" className="gap-1 data-[state=active]:bg-primary/10 data-[state=active]:text-primary border border-transparent data-[state=active]:border-primary/20 rounded-lg"><BookOpen className="w-3.5 h-3.5" /> Learning</TabsTrigger>
                 <TabsTrigger value="knowledgebase" className="gap-1 data-[state=active]:bg-primary/10 data-[state=active]:text-primary border border-transparent data-[state=active]:border-primary/20 rounded-lg"><BookOpen className="w-3.5 h-3.5" /> Knowledge Base</TabsTrigger>
+                <TabsTrigger value="plan_config" className="gap-1 data-[state=active]:bg-primary/10 data-[state=active]:text-primary border border-transparent data-[state=active]:border-primary/20 rounded-lg"><Settings2 className="w-3.5 h-3.5" /> Plan Config</TabsTrigger>
                 <TabsTrigger value="intake_videos" className="gap-1 data-[state=active]:bg-primary/10 data-[state=active]:text-primary border border-transparent data-[state=active]:border-primary/20 rounded-lg"><Video className="w-3.5 h-3.5" /> Intake Videos</TabsTrigger>
                 <TabsTrigger value="notifications" className="gap-1 data-[state=active]:bg-primary/10 data-[state=active]:text-primary border border-transparent data-[state=active]:border-primary/20 rounded-lg"><Bell className="w-3.5 h-3.5" /> Notifications</TabsTrigger>
               </TabsList>
@@ -1131,6 +1124,13 @@ export default function AdminHeirway() {
               <LearningContentManager clients={clients.map(c => ({ id: c.id, user_id: c.user_id, full_name: c.full_name }))} />
             </TabsContent>
 
+            {/* ═══ PLAN CONFIG TAB ═══ */}
+            <TabsContent value="plan_config" className="space-y-8">
+              <PlanConfigurationManager />
+              <PlanEntitlementEditor />
+              <PlanPricesViewer />
+            </TabsContent>
+
             {/* ═══ INTAKE VIDEOS TAB ═══ */}
             <TabsContent value="intake_videos">
               <IntakeVideoManager />
@@ -1211,8 +1211,8 @@ export default function AdminHeirway() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {PLAN_OPTIONS.map(p => (
-                        <SelectItem key={p} value={p} className="text-xs">{planLabel(p)}</SelectItem>
+                      {withCurrentPlanOption(assignmentOptions, selectedClient.selected_plan, catalog).map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value} className="text-xs">{opt.label}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -1552,8 +1552,8 @@ export default function AdminHeirway() {
                 <Select value={newClient.selected_plan} onValueChange={val => setNewClient(p => ({ ...p, selected_plan: val }))}>
                   <SelectTrigger className="mt-1 h-8 text-xs"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {PLAN_OPTIONS.map(p => (
-                      <SelectItem key={p} value={p} className="text-xs">{planLabel(p)}</SelectItem>
+                    {assignmentOptions.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value} className="text-xs">{opt.label}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

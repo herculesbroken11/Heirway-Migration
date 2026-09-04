@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useClientProfile } from '@/hooks/useClientProfile';
+import { canViewCatalogContent } from '@/lib/planEntitlementAccess';
 import { useUpgradeRoute } from '@/hooks/useUpgradeRoute';
 import { Search, FileText, Video, ExternalLink, BookOpen, Star, Lock, Eye, ArrowRight, Loader2, X, File, MessageSquarePlus, Send, CheckCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -66,7 +67,13 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 export default function HeirwayKnowledgebase() {
-  const { client, loading: profileLoading } = useClientProfile();
+  const {
+    client,
+    loading: profileLoading,
+    contentAccessKeys,
+    premiumAccessGranted,
+    entitlementResolved,
+  } = useClientProfile();
   const goToUpgrade = useUpgradeRoute();
   const [articles, setArticles] = useState<KBArticle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -79,8 +86,6 @@ export default function HeirwayKnowledgebase() {
   const [requestTopic, setRequestTopic] = useState('');
   const [requestDescription, setRequestDescription] = useState('');
   const [submittingRequest, setSubmittingRequest] = useState(false);
-
-  const userPlan = client?.selected_plan || 'free';
 
   useEffect(() => {
     loadArticles();
@@ -98,8 +103,12 @@ export default function HeirwayKnowledgebase() {
   };
 
   const hasAccess = (article: KBArticle) => {
-    if (!article.allowed_plans || article.allowed_plans.length === 0) return true;
-    return article.allowed_plans.includes(userPlan);
+    if (!entitlementResolved) return false;
+    return canViewCatalogContent({
+      allowedPlans: article.allowed_plans,
+      contentAccessKeys,
+      premiumAccessGranted,
+    });
   };
 
   const categories = useMemo(() => {
@@ -124,7 +133,10 @@ export default function HeirwayKnowledgebase() {
     return filtered;
   }, [articles, searchQuery, selectedCategory, selectedType]);
 
-  const featuredArticles = useMemo(() => articles.filter(a => a.is_featured && hasAccess(a)), [articles, userPlan]);
+  const featuredArticles = useMemo(
+    () => articles.filter((a) => a.is_featured && hasAccess(a)),
+    [articles, contentAccessKeys, premiumAccessGranted, entitlementResolved],
+  );
   const topArticles = useMemo(() => [...articles].sort((a, b) => b.views_count - a.views_count).slice(0, 5), [articles]);
 
   const openArticle = async (article: KBArticle) => {

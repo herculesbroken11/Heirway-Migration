@@ -38,7 +38,7 @@ export default function HeirwayRecommendation() {
       navigate('/diagnostic');
       return;
     }
-    sessionStorage.setItem('heirway_selected_package', pkgId);
+    sessionStorage.setItem('heirway_selected_package', pkg.id);
     navigate(user ? '/heirway/checkout' : '/login');
   };
 

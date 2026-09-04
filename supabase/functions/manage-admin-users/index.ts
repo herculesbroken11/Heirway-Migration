@@ -159,7 +159,7 @@ Deno.serve(async (req) => {
       let existingUser = false;
       let emailSent = false;
 
-      const origin = req.headers.get("origin") || "https://trustreadiness.lovable.app";
+      const origin = req.headers.get("origin") || "https://myheirway.com";
       const { data: authData, error: authError } = await adminClient.auth.admin.inviteUserByEmail(normalizedEmail, {
         data: { full_name: normalizedFullName || null },
         redirectTo: `${origin}/reset-password`,
@@ -189,7 +189,7 @@ Deno.serve(async (req) => {
           });
 
           // Re-send an auth email so existing users still receive a message
-          const origin = req.headers.get("origin") || "https://trustreadiness.lovable.app";
+          const origin = req.headers.get("origin") || "https://myheirway.com";
           const { error: resetError } = await adminClient.auth.resetPasswordForEmail(normalizedEmail, {
             redirectTo: `${origin}/reset-password`,
           });

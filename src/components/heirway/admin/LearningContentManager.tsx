@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import {
   Plus, Pencil, Trash2, Video, BookOpen, Send, Eye, EyeOff, ChevronDown, ChevronUp, Loader2, Upload,
 } from 'lucide-react';
+import { useContentPlanOptions } from '@/hooks/useContentPlanOptions';
 
 interface LearningModule {
   id: string;
@@ -46,21 +47,26 @@ interface LearningLesson {
 
 const DIFFICULTY_OPTIONS = ['beginner', 'intermediate', 'advanced'];
 
-const PLAN_OPTIONS = [
-  { value: 'free', label: 'Free' },
-  { value: 'education', label: 'Education' },
-  { value: 'foundation', label: 'Foundation' },
-  { value: 'business', label: 'Business' },
-  { value: 'wealth_builder', label: 'Wealth Builder' },
-];
+const emptyModuleFormBase = {
+  title: '',
+  description: '',
+  thumbnail_url: '',
+  sort_order: 0,
+  is_active: true,
+};
 
-const ALL_PLANS = PLAN_OPTIONS.map(p => p.value);
-
-const emptyModuleForm = { title: '', description: '', thumbnail_url: '', sort_order: 0, is_active: true, allowed_plans: [...ALL_PLANS] };
-
-const emptyLessonForm = {
-  title: '', description: '', difficulty: 'beginner', video_url: '', thumbnail_url: '',
-  attachment_url: '', attachment_name: '', duration_minutes: 0, sort_order: 0, is_free: false, is_active: true, allowed_plans: [...ALL_PLANS],
+const emptyLessonFormBase = {
+  title: '',
+  description: '',
+  difficulty: 'beginner',
+  video_url: '',
+  thumbnail_url: '',
+  attachment_url: '',
+  attachment_name: '',
+  duration_minutes: 0,
+  sort_order: 0,
+  is_free: false,
+  is_active: true,
 };
 
 interface Props {
@@ -68,19 +74,28 @@ interface Props {
 }
 
 export default function LearningContentManager({ clients }: Props) {
+  const { options: contentPlanOptions } = useContentPlanOptions();
+  const defaultAllowedPlans = () => contentPlanOptions.map((o) => o.key);
+
   const [modules, setModules] = useState<LearningModule[]>([]);
   const [lessons, setLessons] = useState<LearningLesson[]>([]);
   const [expandedModule, setExpandedModule] = useState<string | null>(null);
 
   const [moduleDialogOpen, setModuleDialogOpen] = useState(false);
   const [editingModule, setEditingModule] = useState<LearningModule | null>(null);
-  const [moduleForm, setModuleForm] = useState(emptyModuleForm);
+  const [moduleForm, setModuleForm] = useState({
+    ...emptyModuleFormBase,
+    allowed_plans: [] as string[],
+  });
   const [thumbnailInputMode, setThumbnailInputMode] = useState<'url' | 'upload'>('upload');
   const [uploadingThumbnail, setUploadingThumbnail] = useState(false);
 
   const [lessonDialogOpen, setLessonDialogOpen] = useState(false);
   const [editingLesson, setEditingLesson] = useState<LearningLesson | null>(null);
-  const [lessonForm, setLessonForm] = useState(emptyLessonForm);
+  const [lessonForm, setLessonForm] = useState({
+    ...emptyLessonFormBase,
+    allowed_plans: [] as string[],
+  });
   const [lessonModuleId, setLessonModuleId] = useState<string>('');
   const [sendNotification, setSendNotification] = useState(false);
   const [addToKnowledgebase, setAddToKnowledgebase] = useState(false);
@@ -107,18 +122,21 @@ export default function LearningContentManager({ clients }: Props) {
   // ─── Plan checkbox helper ────────────────────────────────
   const PlanCheckboxes = ({ plans, onChange }: { plans: string[]; onChange: (plans: string[]) => void }) => (
     <div>
-      <Label className="text-xs mb-1.5 block">Accessible Plans</Label>
+      <Label className="text-xs mb-1.5 block">Accessible Plans (content entitlement keys)</Label>
       <div className="flex flex-wrap gap-3">
-        {PLAN_OPTIONS.map(p => (
-          <label key={p.value} className="flex items-center gap-1.5 text-xs cursor-pointer">
+        {contentPlanOptions.map((p) => (
+          <label key={p.key} className="flex items-center gap-1.5 text-xs cursor-pointer">
             <Checkbox
-              checked={plans.includes(p.value)}
+              checked={plans.includes(p.key)}
               onCheckedChange={(checked) => {
-                if (checked) onChange([...plans, p.value]);
-                else onChange(plans.filter(v => v !== p.value));
+                if (checked) onChange([...plans, p.key]);
+                else onChange(plans.filter((v) => v !== p.key));
               }}
             />
-            {p.label}
+            <span>
+              {p.displayName}
+              <span className="text-[10px] text-muted-foreground ml-1">({p.key})</span>
+            </span>
           </label>
         ))}
       </div>
@@ -128,7 +146,11 @@ export default function LearningContentManager({ clients }: Props) {
   // ─── Module CRUD ─────────────────────────────────────────
   const openAddModule = () => {
     setEditingModule(null);
-    setModuleForm({ ...emptyModuleForm, sort_order: modules.length });
+    setModuleForm({
+      ...emptyModuleFormBase,
+      sort_order: modules.length,
+      allowed_plans: defaultAllowedPlans(),
+    });
     setThumbnailInputMode('upload');
     setModuleDialogOpen(true);
   };
@@ -137,7 +159,9 @@ export default function LearningContentManager({ clients }: Props) {
     setEditingModule(mod);
     setModuleForm({
       title: mod.title, description: mod.description, thumbnail_url: mod.thumbnail_url || '',
-      sort_order: mod.sort_order, is_active: mod.is_active, allowed_plans: mod.allowed_plans || [...ALL_PLANS],
+      sort_order: mod.sort_order,
+      is_active: mod.is_active,
+      allowed_plans: mod.allowed_plans || defaultAllowedPlans(),
     });
     setThumbnailInputMode(mod.thumbnail_url?.includes('learning-videos') ? 'upload' : 'url');
     setModuleDialogOpen(true);
@@ -195,7 +219,7 @@ export default function LearningContentManager({ clients }: Props) {
     setEditingLesson(null);
     setLessonModuleId(moduleId);
     const modLessons = lessons.filter(l => l.module_ref_id === moduleId);
-    setLessonForm({ ...emptyLessonForm, sort_order: modLessons.length });
+    setLessonForm({ ...emptyLessonFormBase, sort_order: modLessons.length, allowed_plans: defaultAllowedPlans() });
     setSendNotification(false);
     setAddToKnowledgebase(false);
     setVideoInputMode('url');
@@ -211,7 +235,7 @@ export default function LearningContentManager({ clients }: Props) {
       video_url: lesson.video_url || '', thumbnail_url: lesson.thumbnail_url || '',
       attachment_url: lesson.attachment_url || '', attachment_name: lesson.attachment_name || '',
       duration_minutes: lesson.duration_minutes || 0, sort_order: lesson.sort_order,
-      is_free: lesson.is_free, is_active: lesson.is_active, allowed_plans: lesson.allowed_plans || [...ALL_PLANS],
+      is_free: lesson.is_free, is_active: lesson.is_active, allowed_plans: lesson.allowed_plans || defaultAllowedPlans(),
     });
     setSendNotification(false);
     setAddToKnowledgebase(false);
@@ -346,8 +370,13 @@ export default function LearningContentManager({ clients }: Props) {
   };
 
   const planBadgeLabel = (plans: string[]) => {
-    if (!plans || plans.length === ALL_PLANS.length) return 'All Plans';
-    return plans.map(p => PLAN_OPTIONS.find(o => o.value === p)?.label || p).join(', ');
+    if (!plans || plans.length === contentPlanOptions.length) return 'All Plans';
+    return plans
+      .map((p) => {
+        const opt = contentPlanOptions.find((o) => o.key === p);
+        return opt?.displayName ?? p;
+      })
+      .join(', ');
   };
 
   return (

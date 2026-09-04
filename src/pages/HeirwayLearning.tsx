@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useClientProfile } from '@/hooks/useClientProfile';
+import { canViewCatalogContent } from '@/lib/planEntitlementAccess';
 import { BookOpen, Lock, Video, ArrowLeft, ChevronLeft, ChevronRight, CheckCircle2, Play, Download, Shield, ArrowRight } from 'lucide-react';
 import EnforcedVideoPlayer from '@/components/heirway/learning/EnforcedVideoPlayer';
 import { toast } from 'sonner';
@@ -39,7 +40,16 @@ interface LearningLesson {
 export default function HeirwayLearning() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { tier, user, planName, loading: profileLoading, wealthBuilderTrustsComplete, wealthBuilderEducationActive } = useClientProfile();
+  const {
+    tier,
+    user,
+    loading: profileLoading,
+    wealthBuilderTrustsComplete,
+    wealthBuilderEducationActive,
+    contentAccessKeys,
+    premiumAccessGranted,
+    entitlementResolved,
+  } = useClientProfile();
   const goToUpgrade = useUpgradeRoute();
   const [modules, setModules] = useState<LearningModule[]>([]);
   const [lessons, setLessons] = useState<LearningLesson[]>([]);
@@ -48,9 +58,6 @@ export default function HeirwayLearning() {
 
   const activeModuleId = searchParams.get('module');
   const activeLessonId = searchParams.get('lesson');
-
-  // Map tier to the actual plan name for allowed_plans check
-  const effectivePlan = planName || (tier === 'free' ? 'free' : tier === 'education' ? 'education' : 'free');
 
   useEffect(() => {
     if (profileLoading || !user) return;
@@ -70,16 +77,22 @@ export default function HeirwayLearning() {
   };
 
   const canAccessModule = (mod: LearningModule): boolean => {
-    const plans = mod.allowed_plans;
-    if (!plans || plans.length === 0) return true;
-    return plans.includes(effectivePlan);
+    if (!entitlementResolved) return false;
+    return canViewCatalogContent({
+      allowedPlans: mod.allowed_plans,
+      contentAccessKeys,
+      premiumAccessGranted,
+    });
   };
 
   const canAccessLesson = (lesson: LearningLesson): boolean => {
     if (lesson.is_free) return true;
-    const plans = lesson.allowed_plans;
-    if (!plans || plans.length === 0) return true;
-    return plans.includes(effectivePlan);
+    if (!entitlementResolved) return false;
+    return canViewCatalogContent({
+      allowedPlans: lesson.allowed_plans,
+      contentAccessKeys,
+      premiumAccessGranted,
+    });
   };
 
   const isCompleted = (lessonId: string) =>
@@ -295,9 +308,15 @@ export default function HeirwayLearning() {
   const totalCompleted = progressData.filter(p => p.completed).length;
   const overallPercent = totalLessons > 0 ? Math.round((totalCompleted / totalLessons) * 100) : 0;
 
-  const tierLabel = planName === 'wealth_builder'
-    ? (wealthBuilderTrustsComplete ? 'Wealth Builder — Lifetime Access' : wealthBuilderEducationActive ? 'Wealth Builder — Education Access' : 'Free Access')
-    : tier === 'trust' ? 'Full Access' : tier === 'education' ? 'Education Plan' : 'Free Access';
+  const tierLabel = wealthBuilderTrustsComplete
+    ? 'Wealth Builder — Lifetime Access'
+    : wealthBuilderEducationActive
+      ? 'Wealth Builder — Education Access'
+      : tier === 'trust'
+        ? 'Full Access'
+        : tier === 'education'
+          ? 'Education Plan'
+          : 'Free Access';
 
   // Show loading spinner while profile is still loading to prevent tier flash
   if (profileLoading) {

@@ -13,6 +13,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { BookOpen, Plus, Search, Edit, Trash2, Eye, EyeOff, Star, Upload, Loader2, FileText, Video, ExternalLink, File, MessageSquare, CheckCircle, Clock } from 'lucide-react';
+import { useContentPlanOptions } from '@/hooks/useContentPlanOptions';
 
 const CONTENT_TYPES = [
   { value: 'article', label: 'Article', icon: FileText },
@@ -31,13 +32,22 @@ const CATEGORIES = [
   { value: 'compliance', label: 'Compliance' },
 ];
 
-const PLAN_OPTIONS = [
-  { value: 'free', label: 'Free' },
-  { value: 'education', label: 'Education' },
-  { value: 'foundation', label: 'Foundation' },
-  { value: 'business', label: 'Business' },
-  { value: 'wealth_builder', label: 'Wealth Builder' },
-];
+const emptyFormBase = {
+  title: '',
+  slug: '',
+  summary: '',
+  content: '',
+  content_type: 'article',
+  category: 'general',
+  tags: '',
+  thumbnail_url: '',
+  video_url: '',
+  document_url: '',
+  document_name: '',
+  external_url: '',
+  is_published: false,
+  is_featured: false,
+};
 
 interface KBArticle {
   id: string;
@@ -60,29 +70,17 @@ interface KBArticle {
   created_at: string;
 }
 
-const emptyForm = {
-  title: '',
-  slug: '',
-  summary: '',
-  content: '',
-  content_type: 'article',
-  category: 'general',
-  tags: '',
-  thumbnail_url: '',
-  video_url: '',
-  document_url: '',
-  document_name: '',
-  external_url: '',
-  allowed_plans: ['education', 'foundation', 'business', 'wealth_builder'],
-  is_published: false,
-  is_featured: false,
-};
-
 export default function KnowledgebaseManager() {
+  const { options: contentPlanOptions } = useContentPlanOptions();
+  const defaultAllowedPlans = () => contentPlanOptions.map((o) => o.key);
+
   const [articles, setArticles] = useState<KBArticle[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState({
+    ...emptyFormBase,
+    allowed_plans: [] as string[],
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -171,7 +169,7 @@ export default function KnowledgebaseManager() {
 
   const openCreate = () => {
     setEditingId(null);
-    setForm(emptyForm);
+    setForm({ ...emptyFormBase, allowed_plans: defaultAllowedPlans() });
     setDialogOpen(true);
   };
 
@@ -619,20 +617,23 @@ export default function KnowledgebaseManager() {
             <div>
               <Label className="mb-2 block">Allowed Plans</Label>
               <div className="flex flex-wrap gap-3">
-                {PLAN_OPTIONS.map(plan => (
-                  <label key={plan.value} className="flex items-center gap-1.5 text-sm cursor-pointer">
+                {contentPlanOptions.map((plan) => (
+                  <label key={plan.key} className="flex items-center gap-1.5 text-sm cursor-pointer">
                     <Checkbox
-                      checked={form.allowed_plans.includes(plan.value)}
+                      checked={form.allowed_plans.includes(plan.key)}
                       onCheckedChange={(checked) => {
-                        setForm(f => ({
+                        setForm((f) => ({
                           ...f,
                           allowed_plans: checked
-                            ? [...f.allowed_plans, plan.value]
-                            : f.allowed_plans.filter(p => p !== plan.value),
+                            ? [...f.allowed_plans, plan.key]
+                            : f.allowed_plans.filter((p) => p !== plan.key),
                         }));
                       }}
                     />
-                    {plan.label}
+                    <span>
+                      {plan.displayName}
+                      <span className="text-[10px] text-muted-foreground ml-1">({plan.key})</span>
+                    </span>
                   </label>
                 ))}
               </div>
