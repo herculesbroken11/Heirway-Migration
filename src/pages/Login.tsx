@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { getAuthRedirectUrl } from '@/lib/appUrl';
+import { consumePasswordResetCompleteFlag } from '@/lib/passwordRecoveryCompletion';
 import { ForgotPasswordDialog } from '@/components/auth/ForgotPasswordDialog';
 import { toast } from 'sonner';
 import { HEIRWAY_PLANS } from '@/lib/heirwayPlans';
@@ -23,6 +24,8 @@ export default function Login() {
   const isFreePath = sessionStorage.getItem('heirway_free_path') === 'true';
   const urlParams = new URLSearchParams(window.location.search);
   const forceLogin = urlParams.get('mode') === 'login';
+  // After password recovery, skip auto-route even if a stale session flickers.
+  const [suppressAutoRoute] = useState(() => consumePasswordResetCompleteFlag());
   const [isLogin, setIsLogin] = useState(forceLogin || (!hasSelectedPlan && !isFreePath));
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ email: '', password: '', fullName: '', addressStreet: '', addressCity: '', addressState: '', addressZip: '' });
@@ -36,8 +39,9 @@ export default function Login() {
     return password;
   };
 
-  // If already logged in, route based on role
+  // If already logged in, route based on role — unless we just finished password recovery.
   useEffect(() => {
+    if (suppressAutoRoute) return;
     if (user && !authLoading) {
       const postLoginRedirect = sessionStorage.getItem('heirway_post_login_redirect');
       if (postLoginRedirect) {
@@ -47,7 +51,7 @@ export default function Login() {
       }
       routeUser(user.id);
     }
-  }, [user, authLoading]);
+  }, [user, authLoading, suppressAutoRoute]);
 
   const routeUser = async (userId: string) => {
     const { data: { session } } = await supabase.auth.getSession();

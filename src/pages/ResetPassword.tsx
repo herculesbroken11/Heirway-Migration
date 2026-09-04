@@ -1,23 +1,26 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { completePasswordRecovery } from '@/lib/passwordRecoveryCompletion';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/password-input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import heirwayIcon from '@/assets/heirway-icon.png';
 import { toast } from 'sonner';
 
 export default function ResetPassword() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isRecovery, setIsRecovery] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [completed, setCompleted] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -101,13 +104,30 @@ export default function ResetPassword() {
 
     setLoading(true);
     try {
-      const { error } = await supabase.auth.updateUser({ password });
-      if (error) throw error;
+      const result = await completePasswordRecovery({
+        updatePassword: async () => {
+          const { error } = await supabase.auth.updateUser({ password });
+          return { error };
+        },
+        // Global: revoke recovery (and other) refresh tokens after a password change.
+        signOut: async () => supabase.auth.signOut({ scope: 'global' }),
+        onPasswordUpdated: () => {
+          toast.success('Password updated successfully!');
+        },
+        onBeforeSignOut: () => {
+          setCompleted(true);
+          queryClient.clear();
+        },
+      });
 
-      toast.success('Password updated successfully!');
-      // Sign out so user logs in fresh with new password
-      await supabase.auth.signOut();
-      navigate('/login');
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+
+      // Keep success UI visible briefly, then force login (avoids Login auto-route race).
+      await new Promise((resolve) => setTimeout(resolve, 900));
+      navigate('/login?mode=login', { replace: true });
     } catch (err: any) {
       setError(err.message || 'Failed to update password');
     } finally {
@@ -123,7 +143,7 @@ export default function ResetPassword() {
     );
   }
 
-  if (!isRecovery) {
+  if (!isRecovery && !completed) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="max-w-md w-full shadow-elevated border-border/50">
@@ -136,6 +156,23 @@ export default function ResetPassword() {
             <Button onClick={() => navigate('/login')} className="w-full">
               Back to Login
             </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (completed) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="max-w-md w-full shadow-elevated border-border/50">
+          <CardContent className="p-6 text-center space-y-3">
+            <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto" />
+            <h2 className="text-xl font-display font-bold text-foreground">Password updated</h2>
+            <p className="text-sm text-muted-foreground">
+              Your password has been changed. Please sign in with your new password.
+            </p>
+            <Loader2 className="w-5 h-5 animate-spin text-primary mx-auto" />
           </CardContent>
         </Card>
       </div>
