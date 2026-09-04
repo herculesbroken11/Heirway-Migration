@@ -10,6 +10,20 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const resolveAuthRedirectOrigin = (): string => {
+    const fromEnv = Deno.env.get("SITE_URL")?.trim();
+    if (fromEnv && !/localhost|127\.0\.0\.1/i.test(fromEnv)) {
+      return fromEnv.replace(/\/+$/, "");
+    }
+    const fromHeader = req.headers.get("origin")?.trim();
+    if (fromHeader && !/localhost|127\.0\.0\.1/i.test(fromHeader)) {
+      return fromHeader.replace(/\/+$/, "");
+    }
+    // Allow local admin UI testing only when SITE_URL is unset
+    if (fromHeader) return fromHeader.replace(/\/+$/, "");
+    throw new Error("SITE_URL is not configured for auth redirects");
+  };
+
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
@@ -159,7 +173,7 @@ Deno.serve(async (req) => {
       let existingUser = false;
       let emailSent = false;
 
-      const origin = req.headers.get("origin") || "https://myheirway.com";
+      const origin = resolveAuthRedirectOrigin();
       const { data: authData, error: authError } = await adminClient.auth.admin.inviteUserByEmail(normalizedEmail, {
         data: { full_name: normalizedFullName || null },
         redirectTo: `${origin}/reset-password`,
@@ -189,7 +203,7 @@ Deno.serve(async (req) => {
           });
 
           // Re-send an auth email so existing users still receive a message
-          const origin = req.headers.get("origin") || "https://myheirway.com";
+          const origin = resolveAuthRedirectOrigin();
           const { error: resetError } = await adminClient.auth.resetPasswordForEmail(normalizedEmail, {
             redirectTo: `${origin}/reset-password`,
           });

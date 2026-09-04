@@ -8,6 +8,7 @@ import { PasswordInput } from '@/components/ui/password-input';
 import { Label } from '@/components/ui/label';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { getAuthRedirectUrl } from '@/lib/appUrl';
 import { ForgotPasswordDialog } from '@/components/auth/ForgotPasswordDialog';
 import { toast } from 'sonner';
 import { HEIRWAY_PLANS } from '@/lib/heirwayPlans';
@@ -136,7 +137,7 @@ export default function Login() {
               address_state: form.addressState,
               address_zip: form.addressZip,
             },
-            emailRedirectTo: `${window.location.origin}/set-password`,
+            emailRedirectTo: getAuthRedirectUrl('/set-password'),
           },
         });
         if (error) {
@@ -146,7 +147,7 @@ export default function Login() {
             await supabase.auth.resend({
               type: 'signup',
               email: form.email,
-              options: { emailRedirectTo: `${window.location.origin}/set-password` },
+              options: { emailRedirectTo: getAuthRedirectUrl('/set-password') },
             });
             toast.info('An account with this email already exists. We\'ve sent a new verification link — please check your inbox.');
             navigate('/verify-email');
@@ -162,7 +163,7 @@ export default function Login() {
           await supabase.auth.resend({
             type: 'signup',
             email: form.email,
-            options: { emailRedirectTo: `${window.location.origin}/set-password` },
+            options: { emailRedirectTo: getAuthRedirectUrl('/set-password') },
           });
           toast.info('An account with this email already exists. We\'ve sent a new verification link — please check your inbox.');
           navigate('/verify-email');

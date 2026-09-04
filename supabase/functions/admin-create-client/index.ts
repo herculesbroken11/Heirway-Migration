@@ -49,8 +49,15 @@ Deno.serve(async (req) => {
     let userId: string;
     let isNewUser = false;
 
-    // Determine the app URL for redirects
-    const siteUrl = Deno.env.get("SITE_URL") || "https://myheirway.com";
+    // Determine the app URL for redirects (Fresh production: set SITE_URL=https://heirway.vercel.app)
+    const siteUrlRaw = Deno.env.get("SITE_URL")?.trim();
+    if (!siteUrlRaw) {
+      return reply({ error: "SITE_URL is not configured" }, false);
+    }
+    if (/localhost|127\.0\.0\.1/i.test(siteUrlRaw)) {
+      return reply({ error: "SITE_URL must not be a localhost URL in this environment" }, false);
+    }
+    const siteUrl = siteUrlRaw.replace(/\/+$/, "");
 
     // Try to invite user by email — this sends them a setup email automatically
     const { data: inviteData, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(email, {

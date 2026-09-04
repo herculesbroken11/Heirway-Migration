@@ -33,7 +33,12 @@ Deno.serve(async (req) => {
     if (!email) return reply({ error: "Email is required" }, false);
 
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
-    const siteUrl = Deno.env.get("SITE_URL") || "https://myheirway.com";
+    const siteUrlRaw = Deno.env.get("SITE_URL")?.trim();
+    if (!siteUrlRaw) return reply({ error: "SITE_URL is not configured" }, false);
+    if (/localhost|127\.0\.0\.1/i.test(siteUrlRaw)) {
+      return reply({ error: "SITE_URL must not be a localhost URL in this environment" }, false);
+    }
+    const siteUrl = siteUrlRaw.replace(/\/+$/, "");
 
     // Find user
     const { data: listData, error: listError } = await adminClient.auth.admin.listUsers();

@@ -12,6 +12,7 @@ import { Loader2, AlertCircle } from 'lucide-react';
 import heirwayIcon from '@/assets/heirway-icon.png';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { getAuthRedirectUrl } from '@/lib/appUrl';
 import { ForgotPasswordDialog } from '@/components/auth/ForgotPasswordDialog';
 
 export function LoginForm() {
@@ -38,7 +39,7 @@ export function LoginForm() {
       const { error } = await supabase.auth.resend({
         type: 'signup',
         email: loginEmail,
-        options: { emailRedirectTo: `${window.location.origin}/set-password` },
+        options: { emailRedirectTo: getAuthRedirectUrl('/set-password') },
       });
       if (error) {
         toast.error('Could not resend', { description: error.message });

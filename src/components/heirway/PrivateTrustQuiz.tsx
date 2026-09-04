@@ -9,6 +9,7 @@ import { ArrowRight, ArrowLeft } from 'lucide-react';
 import { getVisibleQuestions } from '@/lib/trustQuiz';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { getAuthRedirectUrl } from '@/lib/appUrl';
 import { toast } from 'sonner';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -162,7 +163,7 @@ const PrivateTrustQuiz = forwardRef<HTMLDivElement>(function PrivateTrustQuiz(_p
         email,
         password: tempPassword,
         options: {
-          emailRedirectTo: `${window.location.origin}/set-password`,
+          emailRedirectTo: getAuthRedirectUrl('/set-password'),
           data: {
             full_name: fullName,
             phone,

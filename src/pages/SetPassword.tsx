@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Lock, ArrowRight, Loader2, AlertCircle, Mail } from 'lucide-react';
 import { useForceLightMode } from '@/hooks/useForceLightMode';
 import { supabase } from '@/integrations/supabase/client';
+import { getAuthRedirectUrl } from '@/lib/appUrl';
 import { toast } from 'sonner';
 import heirwayLogo from '@/assets/heirway-logo-transparent.png';
 
@@ -198,12 +199,12 @@ export default function SetPassword() {
       const { error: resendErr } = await supabase.auth.resend({
         type: 'signup',
         email: resendEmail,
-        options: { emailRedirectTo: `${window.location.origin}/set-password` },
+        options: { emailRedirectTo: getAuthRedirectUrl('/set-password') },
       });
       if (resendErr) {
         // If signup resend fails (user already confirmed), try password recovery instead
         const { error: recoveryErr } = await supabase.auth.resetPasswordForEmail(resendEmail, {
-          redirectTo: `${window.location.origin}/set-password`,
+          redirectTo: getAuthRedirectUrl('/set-password'),
         });
         if (recoveryErr) {
           toast.error(recoveryErr.message);
